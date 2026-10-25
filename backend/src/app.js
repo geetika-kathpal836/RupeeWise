@@ -17,6 +17,7 @@ import { processRecurringTransactions } from './services/recurringService.js'
 const app = express()
 
 // ── Security ─────────────────────────────────────────────────────────────────
+app.set('trust proxy', 1)
 app.use(helmet())
 
 const allowedOrigins = [
@@ -24,12 +25,17 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  'https://rupee-wise-six.vercel.app',
   ...(process.env.CLIENT_ORIGIN ? process.env.CLIENT_ORIGIN.split(/[,|]+/).map((s) => s.trim()).filter(Boolean) : [])
 ]
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) return callback(null, true)
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/.*\.vercel\.app$/.test(origin)
+    ) {
       return callback(null, true)
     }
     return callback(new Error(`Not allowed by CORS: ${origin}`))

@@ -28,10 +28,11 @@ function issueToken(res, userId) {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   })
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true'
   res.cookie('token', token, {
     httpOnly: true,
-    secure:   process.env.COOKIE_SECURE === 'true',
-    sameSite: process.env.COOKIE_SECURE === 'true' ? 'none' : 'lax',
+    secure:   isSecure,
+    sameSite: isSecure ? 'none' : 'lax',
     maxAge:   7 * 24 * 60 * 60 * 1000, // 7 days
   })
   return token
@@ -98,11 +99,12 @@ export async function login(req, res, next) {
 }
 
 export async function logout(req, res) {
+  const isSecure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true'
   res.clearCookie('token', {
     httpOnly: true,
-    secure:   process.env.COOKIE_SECURE === 'true',
-    sameSite: process.env.COOKIE_SECURE === 'true' ? 'none' : 'lax',
-    })
+    secure:   isSecure,
+    sameSite: isSecure ? 'none' : 'lax',
+  })
   res.json({ message: 'Logged out.' })
 }
 

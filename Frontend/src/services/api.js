@@ -6,8 +6,12 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Request interceptor — allow browser to set boundary for FormData
+// Request interceptor — attach JWT Bearer token & allow boundary for FormData
 api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type']
   }
@@ -19,6 +23,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      localStorage.removeItem('token')
       // Let AuthContext handle redirects
       window.dispatchEvent(new CustomEvent('auth:unauthorized'))
     }
